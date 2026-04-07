@@ -102,15 +102,17 @@ void loop() {
     }
   }
 
-  // Log sensor data to serial
-  Serial.print("CH4: ");
-  Serial.print(ch4_ppm);
-  Serial.print(" ppm | H2S: ");
-  Serial.print(h2s_ppm);
-  Serial.print(" ppm | Water: ");
-  Serial.print(distance_cm);
-  Serial.print(" cm | Alert: ");
-  Serial.println((ch4_alert || h2s_alert || flood_alert) ? "YES" : "NO");
+  // Output JSON for parsing
+  // Format: {"ch4":117.5,"h2s":1.2,"water":45.3,"alert":false}
+  Serial.print("{\"ch4\":");
+  Serial.print(ch4_ppm, 2);
+  Serial.print(",\"h2s\":");
+  Serial.print(h2s_ppm, 2);
+  Serial.print(",\"water\":");
+  Serial.print(distance_cm, 2);
+  Serial.print(",\"alert\":");
+  Serial.print((ch4_alert || h2s_alert || flood_alert) ? "true" : "false");
+  Serial.println("}");
 
   delay(1000);
 }

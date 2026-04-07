@@ -1,0 +1,14 @@
+{
+  "name": "manhole-bridge",
+  "version": "1.0.0",
+  "description": "Bridge between Wokwi simulator and Firebase",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js",
+    "dev": "node bridge.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "firebase-admin": "^12.0.0"
+  }
+}
