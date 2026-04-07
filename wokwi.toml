@@ -2,6 +2,7 @@
 version = 1
 elf = "firmware.elf"
 firmware = "firmware.bin"
+rfc2217ServerPort = 4000
 
 [wokwi.diagram]
 version = 1

@@ -5,7 +5,14 @@
   "main": "bridge.js",
   "scripts": {
     "start": "node bridge.js",
-    "dev": "node bridge.js"
+    "dev": "node bridge.js",
+    "bridge": "node bridge.js",
+    "stream": "node continuous-data.js",
+    "test": "node test-data.js",
+    "watch:gui": "node watch-rfc2217.js",
+    "watch:file": "node watch-wokwi.js",
+    "watch:python": "python3 watch_wokwi_file.py",
+    "simulate": "bash ./run-wokwi-cli.sh"
   },
   "dependencies": {
     "express": "^4.22.1",

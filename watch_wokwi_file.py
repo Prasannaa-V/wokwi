@@ -1,61 +1,81 @@
 #!/usr/bin/env python3
 """
-Wokwi Output File Watcher - Reads JSON from Wokwi log file and sends to Firebase
+Wokwi Output File Watcher - Reads JSON from Wokwi log file and sends to the bridge
 """
 
 import os
 import time
 import json
-import requests
 import sys
+from urllib import request, error
 
-LOG_FILE = "wokwi_output.log"
-FIREBASE_BRIDGE_URL = "http://localhost:3001/api/sensor"
+LOG_FILES = ["wokwi_output.log", "wokwi-output.log"]
+BRIDGE_URL = "http://localhost:3001/api/sensor"
 
-last_position = 0
+last_positions = {log_file: 0 for log_file in LOG_FILES}
 data_count = 0
 
-def send_to_firebase(data):
-    """Send sensor data to Firebase bridge"""
+def get_active_log_file():
+    for log_file in LOG_FILES:
+        if os.path.exists(log_file):
+            return log_file
+    return LOG_FILES[0]
+
+def send_to_bridge(data):
+    """Send sensor data to the local bridge without external dependencies"""
     try:
-        response = requests.post(FIREBASE_BRIDGE_URL, json=data, timeout=5)
-        return response.status_code == 200
-    except Exception as e:
-        print(f"❌ Firebase error: {e}")
+        payload = json.dumps(data).encode("utf-8")
+        bridge_request = request.Request(
+            BRIDGE_URL,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with request.urlopen(bridge_request, timeout=5) as response:
+            return response.status == 200
+    except error.URLError as exc:
+        print(f"❌ Bridge error: {exc}")
+        return False
+    except Exception as exc:
+        print(f"❌ Bridge error: {exc}")
         return False
 
 def watch_file():
     """Watch log file for new JSON lines"""
-    global last_position, data_count
+    global data_count
     
-    print(f"\n👀 Watching {LOG_FILE} for sensor data...")
-    print(f"📡 Sending to: {FIREBASE_BRIDGE_URL}\n")
+    print(f"\n👀 Watching {' or '.join(LOG_FILES)} for sensor data...")
+    print(f"📡 Sending to: {BRIDGE_URL}\n")
     print("⏳ Waiting for Wokwi to start...\n")
     
     first_read = True
     
     while True:
         try:
-            if not os.path.exists(LOG_FILE):
+            log_file = get_active_log_file()
+
+            if not os.path.exists(log_file):
                 if first_read:
-                    print(f"⏳ Waiting for {LOG_FILE} to be created...")
-                    print("   (Make sure Wokwi is running: wokwi simulate . > wokwi_output.log)\n")
+                    print(f"⏳ Waiting for {log_file} to be created...")
+                    print("   (Start the simulator with: npm run simulate)\n")
                     first_read = False
                 time.sleep(1)
                 continue
             
-            file_size = os.path.getsize(LOG_FILE)
+            file_size = os.path.getsize(log_file)
+            last_position = last_positions.get(log_file, 0)
             
             if file_size < last_position:
                 # File was cleared
                 print("🔄 Log file was cleared, resetting position...")
                 last_position = 0
+                last_positions[log_file] = 0
             
             if file_size > last_position:
-                with open(LOG_FILE, 'r') as f:
+                with open(log_file, 'r', encoding='utf-8') as f:
                     f.seek(last_position)
                     lines = f.readlines()
-                    last_position = file_size
+                    last_positions[log_file] = file_size
                     
                     for line in lines:
                         line = line.strip()
@@ -63,7 +83,7 @@ def watch_file():
                             try:
                                 data = json.loads(line)
                                 if 'ch4' in data and 'h2s' in data and 'water' in data:
-                                    if send_to_firebase(data):
+                                    if send_to_bridge(data):
                                         data_count += 1
                                         alert = "🚨" if data.get('alert') else "✓"
                                         timestamp = time.strftime('%H:%M:%S')
@@ -74,7 +94,7 @@ def watch_file():
             time.sleep(0.5)
         
         except KeyboardInterrupt:
-            print("\n\n✅ Watcher stopped - data sent to Firebase")
+            print("\n\n✅ Watcher stopped - data sent to bridge")
             print(f"📊 Total readings: {data_count}")
             print("📲 Check http://localhost:3000 for live dashboard!\n")
             sys.exit(0)

@@ -1,10 +1,17 @@
-// Watch file for new Wokwi JSON data and send to Firebase
+// Watch file for new Wokwi JSON data and send it to the local bridge
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const LOG_FILE = path.join(__dirname, 'wokwi-output.log');
-let lastPosition = 0;
+const LOG_FILES = [
+  path.join(__dirname, 'wokwi_output.log'),
+  path.join(__dirname, 'wokwi-output.log'),
+];
+const fileOffsets = new Map(LOG_FILES.map((filePath) => [filePath, 0]));
+
+function getActiveLogFile() {
+  return LOG_FILES.find((filePath) => fs.existsSync(filePath)) || LOG_FILES[0];
+}
 
 function sendData(data) {
   return new Promise((resolve, reject) => {
@@ -35,21 +42,26 @@ function sendData(data) {
 
 function readNewLines() {
   try {
-    if (!fs.existsSync(LOG_FILE)) {
+    const logFile = getActiveLogFile();
+
+    if (!fs.existsSync(logFile)) {
       return;
     }
 
-    const stats = fs.statSync(LOG_FILE);
+    const stats = fs.statSync(logFile);
     const fileSize = stats.size;
+    const lastPosition = fileOffsets.get(logFile) || 0;
 
     if (fileSize < lastPosition) {
       // File was cleared/rotated
-      lastPosition = 0;
+      fileOffsets.set(logFile, 0);
     }
 
-    if (fileSize > lastPosition) {
-      const readable = fs.createReadStream(LOG_FILE, {
-        start: lastPosition,
+    const effectivePosition = fileOffsets.get(logFile) || 0;
+
+    if (fileSize > effectivePosition) {
+      const readable = fs.createReadStream(logFile, {
+        start: effectivePosition,
         encoding: 'utf8'
       });
 
@@ -85,7 +97,7 @@ function readNewLines() {
       });
 
       readable.on('end', () => {
-        lastPosition = fileSize;
+        fileOffsets.set(logFile, fileSize);
       });
     }
   } catch (error) {
@@ -94,11 +106,11 @@ function readNewLines() {
 }
 
 console.log('\n👀 Watching for Wokwi output...');
-console.log(`📄 Log file: ${LOG_FILE}\n`);
+console.log(`📄 Log file: ${LOG_FILES.map((filePath) => path.basename(filePath)).join(' or ')}\n`);
 console.log('📌 To redirect Wokwi output to this file:');
-console.log('   1. Stop the Wokwi simulation');
-console.log('   2. Redirect serial output: `wokwi > wokwi-output.log 2>&1`');
-console.log('   3. Or manually configure PlatformIO monitor_speed in platformio.ini\n');
+console.log('   1. Start the simulator with `npm run simulate`');
+console.log('   2. Or run wokwi-cli with `--serial-log-file wokwi_output.log`');
+console.log('   3. Then keep this watcher running\n');
 
 // Watch file every 500ms
 setInterval(readNewLines, 500);

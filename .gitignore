@@ -25,6 +25,7 @@ __pycache__/
 # Logs
 wokwi_output.log
 *.log
+sensor-readings.json
 
 # Build outputs
 .pio/build/

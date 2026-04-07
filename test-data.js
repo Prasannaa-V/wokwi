@@ -3,12 +3,12 @@ const http = require('http');
 
 // Sample data points from the Wokwi simulation
 const testData = [
-  { ch4: 117.00, h2s: 1.00, water: 0.00, alert: false },
-  { ch4: 234.00, h2s: 3.00, water: 399.96, alert: false },
-  { ch4: 351.00, h2s: 5.00, water: 399.96, alert: false },
-  { ch4: 468.00, h2s: 6.00, water: 399.96, alert: false },
-  { ch4: 747.00, h2s: 11.00, water: 399.96, alert: true },
-  { ch4: 1289.00, h2s: 20.00, water: 399.96, alert: true },
+  { ch4: 180.0, h2s: 2.0, water: 95.0, source: 'test-sequence' },
+  { ch4: 320.0, h2s: 4.5, water: 88.0, source: 'test-sequence' },
+  { ch4: 640.0, h2s: 7.2, water: 72.0, source: 'test-sequence' },
+  { ch4: 860.0, h2s: 8.8, water: 58.0, source: 'test-sequence' },
+  { ch4: 1120.0, h2s: 10.5, water: 46.0, source: 'test-sequence' },
+  { ch4: 1360.0, h2s: 14.0, water: 22.0, source: 'test-sequence' },
 ];
 
 function sendData(data) {
@@ -30,8 +30,9 @@ function sendData(data) {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
-        console.log(`✓ [${data.ch4}ppm] Sent to Firebase`);
-        resolve(JSON.parse(body));
+        const parsedBody = JSON.parse(body);
+        console.log(`✓ [${parsedBody.reading.ch4} ppm] Stored in ${parsedBody.storageMode}`);
+        resolve(parsedBody);
       });
     });
 
@@ -42,14 +43,14 @@ function sendData(data) {
 }
 
 async function run() {
-  console.log('\n📤 Sending test data to Firebase Bridge...\n');
+  console.log('\n📤 Sending test data to Wokwi bridge...\n');
   
   for (const data of testData) {
     await sendData(data);
     await new Promise(r => setTimeout(r, 500)); // 500ms delay between sends
   }
   
-  console.log('\n✅ All test data sent! Check Firebase Firestore.\n');
+  console.log('\n✅ All test data sent! Check the dashboard or /api/sensor/history.\n');
 }
 
 run().catch(console.error);

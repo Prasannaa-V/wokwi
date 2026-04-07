@@ -11,9 +11,9 @@ import sys
 
 def simulate_sensor_data():
     """Generate realistic sensor data matching ESP32 output"""
-    ch4 = 100.0
-    h2s = 50.0
-    water = 90.0
+    ch4 = 180.0
+    h2s = 2.0
+    water = 95.0
     
     with open("wokwi_output.log", "w") as f:
         print("\n📝 Creating wokwi_output.log with simulated sensor data...")
@@ -23,12 +23,12 @@ def simulate_sensor_data():
         try:
             while True:
                 # Simulate gas leak progression (as in main.cpp)
-                ch4 += 5.0 + (count % 3) * 2
-                h2s += 2.0 + (count % 2) * 1.5
-                water += 0.5 + (count % 4) * 0.2
+                ch4 += 35.0 + (count % 3) * 10
+                h2s += 0.7 + (count % 2) * 0.4
+                water = max(15.0, water - (1.8 + (count % 4) * 0.3))
                 
-                # Trigger alert when CH4 > 200 or H2S > 100
-                alert = ch4 > 200 or h2s > 100
+                # Trigger alert when thresholds match the firmware bridge.
+                alert = ch4 >= 1000 or h2s >= 10 or (100 - water) >= 50
                 
                 # Create JSON line matching ESP32 format
                 data = {
@@ -44,7 +44,8 @@ def simulate_sensor_data():
                 
                 count += 1
                 alert_str = "🚨 ALERT!" if alert else "✓"
-                print(f"[{count:3d}] {alert_str} CH4: {ch4:7.1f}ppm | H2S: {h2s:6.1f}ppm | Water: {water:7.1f}cm")
+                water_level = max(0.0, 100.0 - water)
+                print(f"[{count:3d}] {alert_str} CH4: {ch4:7.1f}ppm | H2S: {h2s:6.1f}ppm | Water Level: {water_level:6.1f}cm")
                 
                 time.sleep(1)
         

@@ -2,6 +2,8 @@ import shutil
 import os
 import sys
 
+Import("env")
+
 def post_program_action(source, target, env):
     """Copy firmware files to project root after build"""
     try:
