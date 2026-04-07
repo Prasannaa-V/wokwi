@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Wokwi Output File Watcher - Reads JSON from Wokwi log file
+Wokwi Output File Watcher - Reads JSON from Wokwi log file and sends to Firebase
 """
 
 import os
@@ -20,19 +20,27 @@ def send_to_firebase(data):
     try:
         response = requests.post(FIREBASE_BRIDGE_URL, json=data, timeout=5)
         return response.status_code == 200
-    except:
+    except Exception as e:
+        print(f"❌ Firebase error: {e}")
         return False
 
 def watch_file():
     """Watch log file for new JSON lines"""
     global last_position, data_count
     
-    print(f"\n👀 Watching {LOG_FILE} for sensor data...\n")
+    print(f"\n👀 Watching {LOG_FILE} for sensor data...")
+    print(f"📡 Sending to: {FIREBASE_BRIDGE_URL}\n")
+    print("⏳ Waiting for Wokwi to start...\n")
+    
+    first_read = True
     
     while True:
         try:
             if not os.path.exists(LOG_FILE):
-                print(f"⏳ Waiting for {LOG_FILE}...")
+                if first_read:
+                    print(f"⏳ Waiting for {LOG_FILE} to be created...")
+                    print("   (Make sure Wokwi is running: wokwi simulate . > wokwi_output.log)\n")
+                    first_read = False
                 time.sleep(1)
                 continue
             
@@ -40,6 +48,7 @@ def watch_file():
             
             if file_size < last_position:
                 # File was cleared
+                print("🔄 Log file was cleared, resetting position...")
                 last_position = 0
             
             if file_size > last_position:
@@ -57,29 +66,25 @@ def watch_file():
                                     if send_to_firebase(data):
                                         data_count += 1
                                         alert = "🚨" if data.get('alert') else "✓"
-                                        print(f"[{data_count}] {alert} CH4: {data['ch4']}ppm | H2S: {data['h2s']}ppm | Water: {data['water']}cm")
+                                        timestamp = time.strftime('%H:%M:%S')
+                                        print(f"[{timestamp}] [{data_count}] {alert} CH4: {data['ch4']:7.1f}ppm | H2S: {data['h2s']:6.1f}ppm | Water: {data['water']:7.1f}cm")
                             except json.JSONDecodeError:
                                 pass
             
             time.sleep(0.5)
         
         except KeyboardInterrupt:
-            print("\n\n👋 Stopped")
+            print("\n\n✅ Watcher stopped - data sent to Firebase")
+            print(f"📊 Total readings: {data_count}")
+            print("📲 Check http://localhost:3000 for live dashboard!\n")
             sys.exit(0)
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"❌ Error: {e}")
             time.sleep(1)
 
 if __name__ == '__main__':
     print("=" * 60)
     print("📝 Wokwi Output File Watcher")
     print("=" * 60)
-    print(f"\n📌 Setup Instructions:")
-    print(f"   1. In terminal, run: wokwi > wokwi_output.log 2>&1")
-    print(f"   2. Or in platformio.ini, add:")
-    print(f"      monitor_filters = log2file")
-    print(f"   3. Or manually redirect output")
-    print(f"\n✅ This script will read from: {LOG_FILE}")
-    print(f"📡 And forward to: {FIREBASE_BRIDGE_URL}\n")
     
     watch_file()
