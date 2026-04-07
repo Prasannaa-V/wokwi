@@ -3,3 +3,30 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+.node_modules
+.
+
+# Secrets & Credentials
+serviceAccountKey.json
+serviceAccountKey.json.json
+.env
+.env.local
+
+# Node
+node_modules/
+npm-debug.log
+package-lock.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Logs
+wokwi_output.log
+*.log
+
+# Build outputs
+.pio/build/
+dist/
+build/
