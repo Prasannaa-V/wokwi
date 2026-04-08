@@ -30,34 +30,6 @@
       }
     },
     {
-      "label": "Wokwi: Watch Serial Log",
-      "type": "shell",
-      "command": "npm run watch:python",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "custom",
-        "pattern": [
-          {
-            "regexp": "^(.*)$",
-            "message": 1
-          }
-        ],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".",
-          "endsPattern": "Waiting for Wokwi to start"
-        }
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "group": "backend"
-      }
-    },
-    {
       "label": "Wokwi: GUI Serial Bridge",
       "type": "shell",
       "command": "npm run watch:gui",
@@ -83,34 +55,6 @@
         "reveal": "always",
         "panel": "dedicated",
         "group": "backend"
-      }
-    },
-    {
-      "label": "Wokwi: Background Simulate",
-      "type": "shell",
-      "command": "npm run simulate",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "custom",
-        "pattern": [
-          {
-            "regexp": "^(.*)$",
-            "message": 1
-          }
-        ],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".",
-          "endsPattern": "Connected to Wokwi Simulation API"
-        }
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "group": "simulator"
       }
     },
     {
@@ -140,17 +84,6 @@
         "panel": "dedicated",
         "group": "frontend"
       }
-    },
-    {
-      "label": "System: Start Background Stack",
-      "dependsOrder": "parallel",
-      "dependsOn": [
-        "Wokwi: Bridge",
-        "Wokwi: Watch Serial Log",
-        "Wokwi: Background Simulate",
-        "Dashboard: Dev Server"
-      ],
-      "problemMatcher": []
     },
     {
       "label": "System: Start GUI Slider Stack",

@@ -1,15 +1,15 @@
 @echo off
-REM Start Everything for Real Wokwi Integration
-REM Run this batch file and follow the instructions
+REM Quick start for the supported GUI-slider workflow
 
 echo.
 echo ============================================================
-echo   MANHOLE MONITORING - REAL WOKWI DATA INTEGRATION
+echo   MANHOLE MONITORING - GUI SLIDER WORKFLOW
 echo ============================================================
 echo.
-echo This will show you the exact commands to run
+echo 1. Open this folder in VS Code
+echo 2. Run the task: System: Start GUI Slider Stack
+echo 3. Start the Wokwi simulator from the VS Code GUI
+echo 4. Keep the simulator tab visible while testing
 echo.
-
-python setup.py
-
 pause
+exit /b 0
