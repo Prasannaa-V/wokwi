@@ -6,7 +6,6 @@
 #define WATER_LEVEL_PIN 32
 #define BUZZER_PIN 4
 
-bool alarmSilenced = false;
 const int ADC_MAX = 1023;
 const float CH4_MAX_PPM = 2000.0f;
 const float H2S_MAX_PPM = 50.0f;
@@ -72,13 +71,10 @@ void loop() {
   bool h2s_alert = h2s_ppm > 10;
   bool flood_alert = water_level_cm >= 50;
 
-  if ((ch4_alert || h2s_alert || flood_alert) && !alarmSilenced) {
+  if (ch4_alert || h2s_alert || flood_alert) {
     digitalWrite(BUZZER_PIN, HIGH); // Trigger local alarm
   } else {
     digitalWrite(BUZZER_PIN, LOW);
-    if (!ch4_alert && !h2s_alert && !flood_alert) {
-      alarmSilenced = false; // Reset silenced state
-    }
   }
 
   // Output JSON for parsing
